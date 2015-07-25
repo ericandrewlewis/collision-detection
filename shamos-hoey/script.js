@@ -86,6 +86,10 @@ lines.forEach(function(line) {
 	svgline.setAttribute('stroke-width', width);
 	svg.appendChild(svgline);
 });
+// Initialize event queue EQ = all segment endpoints;
+// Sort EQ by increasing x and y;
+// Initialize sweep line SL to be empty;
+
 // While (EQ is nonempty) {
 //     Let E = the next event from EQ;
 //     If (E is a left endpoint) {
