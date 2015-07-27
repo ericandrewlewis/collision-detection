@@ -8,7 +8,7 @@
  */
 function generateLines() {
 	var lines = [];
-	for ( i = 0; i <=1000; i++ ) {
+	for ( i = 0; i <=100; i++ ) {
 		lines.push({
 			x1: Math.ceil(700* Math.random()) + 50,
 			y1: Math.ceil(700* Math.random()) + 50,
@@ -43,7 +43,7 @@ function dumbAlgorithm() {
 		svgline.setAttribute('x2', line.x2);
 		svgline.setAttribute('y2', line.y2);
 		if ( line.hasIntersect ) {
-			var color = 'red', width = 5;
+			var color = 'red', width = 2;
 		} else {
 			var color = 'blue', width = 10;
 		}
