@@ -1,3 +1,4 @@
+var start = new Date().getTime();
 // Polyfill for the Array.findIndex()
 if (!Array.prototype.findIndex) {
   Array.prototype.findIndex = function(predicate) {
@@ -47,7 +48,7 @@ lineSegment = function(point1, point2) {
 		}
 	}
 	this.slope = ( this.rightEndpoint.y - this.leftEndpoint.y ) / (this.rightEndpoint.x - this.leftEndpoint.x);
-	this.b = this.leftEndpoint.y - (slope) * this.leftEndpoint.x;
+	this.b = this.leftEndpoint.y - (this.slope) * this.leftEndpoint.x;
 	/**
 	 * Get the y coordinate of a spot on the line given an x coordinate.
 	 *
@@ -57,22 +58,20 @@ lineSegment = function(point1, point2) {
 	 * @return {[type]}   [description]
 	 */
 	this.y = function(x) {
-		return slope * x + b;
+		return this.slope * x + this.b;
 	};
 	return this;
 };
 
-function whereTwoPointsIntersect = function(point1, point2) {
-	// ?
-}
-
 var lineSegments = [];
-for ( i = 0; i <=5; i++ ) {
+for ( i = 0; i <=100; i++ ) {
 	lineSegments.push( new lineSegment(
 		{ x: Math.ceil( 500 * Math.random() ), y: Math.ceil( 500 * Math.random() ) },
 		{ x: Math.ceil( 500 * Math.random() ), y: Math.ceil( 500 * Math.random() ) }
 	) );
 }
+
+// lineSegments =
 
 /**
  * Create and return event queue.
@@ -181,13 +180,18 @@ while ( eq.length ) {
 		                                      {x:lineSegment.rightEndpoint.x, y:lineSegment.rightEndpoint.y},
 		                                      {x:before.leftEndpoint.x, y:before.leftEndpoint.y},
 		                                      {x:before.rightEndpoint.x, y:before.rightEndpoint.y} ) ) {
-			eq.push()
+			var intersect = whereTwoLineSegmentsIntersect( lineSegment, before );
+			eq.push( intersect );
+			eq.sort();
+			lineSegment.hasIntersection = true;
+			before.hasIntersection = true;
 		}
 		if ( after && lineSegmentsIntersect( {x:lineSegment.leftEndpoint.x, y:lineSegment.leftEndpoint.y},
 		                                      {x:lineSegment.rightEndpoint.x, y:lineSegment.rightEndpoint.y},
 		                                      {x:after.leftEndpoint.x, y:after.leftEndpoint.y},
 		                                      {x:after.rightEndpoint.x, y:after.rightEndpoint.y} ) ) {
-			console.log('intersection!');
+			lineSegment.hasIntersection = true;
+			after.hasIntersection = true;
 		}
 	} else if ( event.type == 'rightEndpoint' ) {
 		var index = sweepLine.findIndexFromValue(lineSegment);
@@ -198,10 +202,27 @@ while ( eq.length ) {
 		                                      {x:after.rightEndpoint.x, y:after.rightEndpoint.y},
 		                                      {x:before.leftEndpoint.x, y:before.leftEndpoint.y},
 		                                      {x:before.rightEndpoint.x, y:before.rightEndpoint.y} ) ) {
-			console.log('intersection!');
+			before.hasIntersection = true;
+			after.hasIntersection = true;
 		}
+	} else {
+		sweepLine.x += .00001;
+		sweepLine.sort();
 	}
 	eq.shift();
+}
+
+/**
+ * Find where two line segments intersect.
+ *
+ * @param  {[type]} line1 [description]
+ * @param  {[type]} line2 [description]
+ * @return {[type]}       [description]
+ */
+function whereTwoLineSegmentsIntersect( line1, line2 ) {
+	var x = ( line2.b - line1.b ) / ( line1.slope - line2.slope );
+	var y = line1.slope * x + line1.b;
+	return { x: x, y: y };
 }
 var svg = document.querySelector('svg');
 lineSegments.forEach(function(line) {
@@ -210,15 +231,18 @@ lineSegments.forEach(function(line) {
 	svgline.setAttribute('y1', line.leftEndpoint.y);
 	svgline.setAttribute('x2', line.rightEndpoint.x);
 	svgline.setAttribute('y2', line.rightEndpoint.y);
-	// if ( line.hasIntersect ) {
+	if ( line.hasIntersection ) {
 		var color = 'red', width = 2;
-	// } else {
-		// var color = 'blue', width = 10;
-	// }
+	} else {
+		var color = 'blue', width = 10;
+	}
 	svgline.setAttribute('stroke', color);
 	svgline.setAttribute('stroke-width', width);
 	svg.appendChild(svgline);
 });
+var end = new Date().getTime();
+var time = end - start;
+console.log(time);
 // var EventQueue = function(lineSegments) {
 // 	this.events = [];
 // 	lineSegments.forEach(function(lineSegment) {
