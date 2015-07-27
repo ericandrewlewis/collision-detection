@@ -30,7 +30,8 @@ if (!Array.prototype.findIndex) {
  * @param  {[type]} point2 [description]
  * @return {[type]}        [description]
  */
-lineSegment = function(point1, point2) {
+lineSegment = function(name, point1, point2) {
+	this.name = name;
 	// Determine the sided-ness of the segment's endpoints.
 	if ( point1.x < point2.x ) {
 		this.leftEndpoint = point1;
@@ -64,14 +65,62 @@ lineSegment = function(point1, point2) {
 };
 
 var lineSegments = [];
-for ( i = 0; i <=100; i++ ) {
+segmentData = [{
+	name:'a',
+	x1: 182,
+	y1: 167,
+	x2: 251,
+	y2: 353
+	},
+	{
+	name:'b',
+	x1: 7,
+	y1: 21,
+	x2: 295,
+	y2: 284
+	},
+	{
+	name:'c',
+	x1: 27,
+	y1: 472,
+	x2: 96,
+	y2:  132
+	},
+	{
+	name:'d',
+	x1: 477,
+	y1: 17,
+	x2: 484,
+	y2: 356
+	}
+];
+// 182, 167 to 251, 353
+// b: 7, 21 to 295, 284
+// c: 27, 472 to 96, 132
+// d: 477, 17 to 484, 356
+for ( i = 0; i <=3; i++ ) {
 	lineSegments.push( new lineSegment(
+		segmentData[i].name,
+		// { x: segmentData[i].x1, y: segmentData[i].y1 },
+		// { x: segmentData[i].x2, y: segmentData[i].y2 }
 		{ x: Math.ceil( 500 * Math.random() ), y: Math.ceil( 500 * Math.random() ) },
 		{ x: Math.ceil( 500 * Math.random() ), y: Math.ceil( 500 * Math.random() ) }
 	) );
 }
+var asdf = '';
+lineSegments.forEach(function(lineSegment) {
+	asdf += 'lineSegments.push( new lineSegment("'+lineSegment.name+'", {x: '+lineSegment.leftEndpoint.x + ', y: ' + lineSegment.leftEndpoint.y + '}, {x: '+lineSegment.rightEndpoint.x +', y: '+ lineSegment.rightEndpoint.y + '}) );';
+});
 
-// lineSegments =
+
+// console.log(asdf);
+// console.log( JSON.stringify(lineSegments));
+lineSegments = [];
+lineSegments.push(
+	new lineSegment("a", {x: 256, y: 428}, {x: 455, y: 79}) );
+lineSegments.push( new lineSegment("b", {x: 161, y: 26}, {x: 401, y: 251}) );
+lineSegments.push( new lineSegment("c", {x: 20, y: 41}, {x: 480, y: 464}) );
+lineSegments.push( new lineSegment("d", {x: 37, y: 2}, {x: 50, y: 51}) );
 
 /**
  * Create and return event queue.
@@ -125,9 +174,17 @@ eq.sort();
 var SweepLine = function() {
 	this.lineSegments = [];
 	this.x = 0;
+	/**
+	 * Sort the lines in the sweepLine by descending y value at curent point x.
+	 *
+	 * @return {[type]} [description]
+	 */
 	this.sort = function() {
 		var self = this;
 		return this.lineSegments.sort(function(segment1, segment2) {
+			if ( segment1.name == 'a' || segment2.name == 'a' ) {
+				debugger;
+			}
 			if ( segment1.y(self.x) > segment2.y(self.x) ) {
 				return -1;
 			} else {
@@ -161,7 +218,7 @@ var SweepLine = function() {
 		}
 	};
 	this.remove = function(index) {
-		this.lineSegments.splice(index-1, 1 );
+		this.lineSegments.splice(index, 1);
 	};
 	return this;
 };
@@ -171,20 +228,34 @@ while ( eq.length ) {
 	var event = eq[0];
 	sweepLine.x = event.x;
 	sweepLine.sort();
+	var debug = '';
+	sweepLine.lineSegments.forEach(function(lineSegment) {
+		debug += ' ' + lineSegment.name + ' ';
+	});
+	console.log( 'sweep line order ' + debug );
 	var lineSegment = event.lineSegment;
+	console.log('sweeping at ' + event.x + ', ' + event.y );
 	if ( event.type == 'leftEndpoint' ) {
 		var index = sweepLine.push(lineSegment);
 		var before = sweepLine.before(index);
 		var after = sweepLine.after(index);
+		if ( before ) {
+			console.log( 'checking if ' + lineSegment.name + ' intersects with ' + before.name );
+		}
 		if ( before && lineSegmentsIntersect( {x:lineSegment.leftEndpoint.x, y:lineSegment.leftEndpoint.y},
 		                                      {x:lineSegment.rightEndpoint.x, y:lineSegment.rightEndpoint.y},
 		                                      {x:before.leftEndpoint.x, y:before.leftEndpoint.y},
 		                                      {x:before.rightEndpoint.x, y:before.rightEndpoint.y} ) ) {
 			var intersect = whereTwoLineSegmentsIntersect( lineSegment, before );
+			console.log( 'pushing intersection ' + intersect.x + ', ' + intersect.y + 'into queue' );
 			eq.push( intersect );
+
 			eq.sort();
 			lineSegment.hasIntersection = true;
 			before.hasIntersection = true;
+		}
+		if ( after ) {
+			console.log( 'checking if ' + lineSegment.name + ' intersects with ' + after.name );
 		}
 		if ( after && lineSegmentsIntersect( {x:lineSegment.leftEndpoint.x, y:lineSegment.leftEndpoint.y},
 		                                      {x:lineSegment.rightEndpoint.x, y:lineSegment.rightEndpoint.y},
@@ -197,6 +268,7 @@ while ( eq.length ) {
 		var index = sweepLine.findIndexFromValue(lineSegment);
 		var before = sweepLine.before(index);
 		var after = sweepLine.after(index);
+
 		sweepLine.remove(index);
 		if ( before && after && lineSegmentsIntersect( {x:after.leftEndpoint.x, y:after.leftEndpoint.y},
 		                                      {x:after.rightEndpoint.x, y:after.rightEndpoint.y},
@@ -206,8 +278,37 @@ while ( eq.length ) {
 			after.hasIntersection = true;
 		}
 	} else {
-		sweepLine.x += .00001;
-		sweepLine.sort();
+		// Since the sweepline will (probably) have the old order...
+		var line1index = sweepLine.findIndexFromValue(event.line1);
+		var line2index = sweepLine.findIndexFromValue(event.line2);
+		if ( line1index < line2index ) {
+			var lineGoingUp = event.line2, lineGoingUpIndex = line2index,
+			    lineGoingDown = event.line1, lineGoingDownIndex = line1index;
+		} else {
+			var lineGoingUp = event.line1, lineGoingUpIndex = line1index,
+			    lineGoingDown = event.line2, lineGoingDownIndex = line2index;
+		}
+		var before = sweepLine.before(lineGoingDownIndex),
+		    after = sweepLine.after(lineGoingUpIndex);
+
+		if ( before && lineSegmentsIntersect( {x:lineGoingUp.leftEndpoint.x, y:lineGoingUp.leftEndpoint.y},
+		                                      {x:lineGoingUp.rightEndpoint.x, y:lineGoingUp.rightEndpoint.y},
+		                                      {x:before.leftEndpoint.x, y:before.leftEndpoint.y},
+		                                      {x:before.rightEndpoint.x, y:before.rightEndpoint.y} ) ) {
+			var intersect = whereTwoLineSegmentsIntersect( lineGoingUp, before );
+			console.log( 'pushing intersection ' + intersect.x + ', ' + intersect + 'into queue' );
+			eq.push( intersect );
+			eq.sort();
+			lineGoingUp.hasIntersection = true;
+			before.hasIntersection = true;
+		}
+		if ( after && lineSegmentsIntersect( {x:lineGoingDown.leftEndpoint.x, y:lineGoingDown.leftEndpoint.y},
+		                                      {x:lineGoingDown.rightEndpoint.x, y:lineGoingDown.rightEndpoint.y},
+		                                      {x:after.leftEndpoint.x, y:after.leftEndpoint.y},
+		                                      {x:after.rightEndpoint.x, y:after.rightEndpoint.y} ) ) {
+			lineGoingDown.hasIntersection = true;
+			after.hasIntersection = true;
+		}
 	}
 	eq.shift();
 }
@@ -222,7 +323,7 @@ while ( eq.length ) {
 function whereTwoLineSegmentsIntersect( line1, line2 ) {
 	var x = ( line2.b - line1.b ) / ( line1.slope - line2.slope );
 	var y = line1.slope * x + line1.b;
-	return { x: x, y: y };
+	return { x: x, y: y, line1: line1, line2: line2 };
 }
 var svg = document.querySelector('svg');
 lineSegments.forEach(function(line) {
