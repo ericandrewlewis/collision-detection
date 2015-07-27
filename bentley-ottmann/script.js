@@ -183,7 +183,7 @@ var SweepLine = function() {
 		var self = this;
 		return this.lineSegments.sort(function(segment1, segment2) {
 			if ( segment1.name == 'a' || segment2.name == 'a' ) {
-				debugger;
+				// debugger;
 			}
 			if ( segment1.y(self.x) > segment2.y(self.x) ) {
 				return -1;
@@ -261,6 +261,9 @@ while ( eq.length ) {
 		                                      {x:lineSegment.rightEndpoint.x, y:lineSegment.rightEndpoint.y},
 		                                      {x:after.leftEndpoint.x, y:after.leftEndpoint.y},
 		                                      {x:after.rightEndpoint.x, y:after.rightEndpoint.y} ) ) {
+			var intersect = whereTwoLineSegmentsIntersect( lineSegment, before );
+			eq.push( intersect );
+			eq.sort();
 			lineSegment.hasIntersection = true;
 			after.hasIntersection = true;
 		}
@@ -274,6 +277,9 @@ while ( eq.length ) {
 		                                      {x:after.rightEndpoint.x, y:after.rightEndpoint.y},
 		                                      {x:before.leftEndpoint.x, y:before.leftEndpoint.y},
 		                                      {x:before.rightEndpoint.x, y:before.rightEndpoint.y} ) ) {
+			var intersect = whereTwoLineSegmentsIntersect( after, before );
+			eq.push( intersect );
+			eq.sort();
 			before.hasIntersection = true;
 			after.hasIntersection = true;
 		}
@@ -296,7 +302,7 @@ while ( eq.length ) {
 		                                      {x:before.leftEndpoint.x, y:before.leftEndpoint.y},
 		                                      {x:before.rightEndpoint.x, y:before.rightEndpoint.y} ) ) {
 			var intersect = whereTwoLineSegmentsIntersect( lineGoingUp, before );
-			console.log( 'pushing intersection ' + intersect.x + ', ' + intersect + 'into queue' );
+			console.log( 'pushing intersection ' + intersect.x + ', ' + intersect.y + 'into queue' );
 			eq.push( intersect );
 			eq.sort();
 			lineGoingUp.hasIntersection = true;
@@ -306,6 +312,10 @@ while ( eq.length ) {
 		                                      {x:lineGoingDown.rightEndpoint.x, y:lineGoingDown.rightEndpoint.y},
 		                                      {x:after.leftEndpoint.x, y:after.leftEndpoint.y},
 		                                      {x:after.rightEndpoint.x, y:after.rightEndpoint.y} ) ) {
+			var intersect = whereTwoLineSegmentsIntersect( lineGoingDown, after );
+			console.log( 'pushing intersection ' + intersect.x + ', ' + intersect.y + 'into queue' );
+			eq.push( intersect );
+			eq.sort();
 			lineGoingDown.hasIntersection = true;
 			after.hasIntersection = true;
 		}
